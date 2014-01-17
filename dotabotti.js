@@ -61,7 +61,7 @@ function out(nick)
 
 function start(nick)
 {
-	if(game == null)
+	if(game == null || game.state == gamestate.ended)
 	{
 		game = {
 			radiant: {
@@ -76,7 +76,8 @@ function start(nick)
 			},
 			gameid: '',
 			state: gamestate.signup,
-			mode: gamemode.shuffle
+			mode: gamemode.shuffle,
+			winner: null
 		}
 
 		signed = [nick];
@@ -89,7 +90,7 @@ function start(nick)
 
 function challenge(nick)
 {
-	if(game == null)
+	if(game == null || game.state == gamestate.ended)
 	{
 		game = {
 			radiant: {
@@ -104,7 +105,8 @@ function challenge(nick)
 			},
 			gameid: '',
 			state: gamestate.challenged,
-			mode: gamemode.draft
+			mode: gamemode.draft,
+			winner: null
 		}
 
 		signed = [nick];
@@ -143,12 +145,21 @@ function cancel(nick)
 	return false;
 }
 
-function end(gameid)
+function end(winner)
 {
 	if(game != null && game.state == gamestate.live)
 	{
 		game.state = gamestate.ended;
-		game.gameid = gameid;
+		
+		if(winner.toLowerCase() == 'radiant')
+		{
+			game.winner = game.radiant;
+		}
+		else
+		{
+			game.winner = game.dire;
+		}
+
 		return true;
 	}
 
@@ -400,11 +411,11 @@ bot.addListener('message', function(from, to, text, message) {
 			case '.end':
 				if(str.length != 2)
 				{
-					bot.say(to, 'Error. Type .end <gameid> to end the game.');
+					bot.say(to, 'Error. Type .end <radiant/dire> to end the game.');
 				}
 				else if(end(str[1]))
 				{
-					bot.say(to, 'Game finished. Radiant wins.');
+					bot.say(to, 'Game finished. ' + game.winner.name + ' wins.');
 				}
 				else
 				{
