@@ -158,13 +158,10 @@ function end(gameid)
 function shuffle()
 {
 	for(var j, x, i = signed.length; i; j = Math.floor(Math.random() * i), x = signed[--i], signed[i] = signed[j], signed[j] = x);
-	for(nick in signed)
-	{
-		game.radiant.players = signed.slice(0,5);
-		game.dire.players = signed.slice(5,10);
-		game.radiant.captain = game.radiant.players[0];
-		game.dire.captain = game.dire.players[0];
-	}
+	game.radiant.players = signed.slice(0,5);
+	game.dire.players = signed.slice(5,10);
+	game.radiant.captain = game.radiant.players[0];
+	game.dire.captain = game.dire.players[0];
 }
 
 function draft()
