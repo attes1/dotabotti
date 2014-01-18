@@ -4,8 +4,8 @@ var monk = require('monk');
 var db = monk('localhost:27017/dotabotti');
 
 var config = {
-	channels: [ '#dotabotti' ],
-	server: 'irc.freenode.net',
+	channels: [ '#tite-dota' ],
+	server: 'irc.nebula.fi',
 	nick: 'Meepo',
 	debug: true
 };
@@ -147,10 +147,18 @@ function accept(nick)
 {
 	if(game != null && game.state == gamestate.challenged && game.radiant.captain != nick)
 	{
-		get_player(nick, true, function(player) { game.dire.captain = player });
-		game.dire.players = [];
-		signed.push(nick);
+		get_player(nick, true, function(player) { game.dire.captain = player; signed = [player] });
 		game.state = gamestate.signup;
+
+		get_player('cxvxvc', true, function(player) { signed.push(player); });
+		get_player('nvcb', true, function(player) { signed.push(player); });
+		get_player('2tsdsd', true, function(player) { signed.push(player); });
+		get_player('adsdssd', true, function(player) { signed.push(player); });
+		get_player('45h54546', true, function(player) { signed.push(player); });
+		get_player('betr', true, function(player) { signed.push(player); });
+		get_player('xctyae', true, function(player) { signed.push(player); });
+		get_player('sfkddidfi', true, function(player) { signed.push(player); });
+
 
 		return true;
 	}
@@ -367,6 +375,9 @@ bot.addListener('message', function(from, to, text, message) {
 	{
 		switch(str[0])
 		{
+			case '.help':
+				bot.say(to, 'Type .help <command> for further instructions. Commands: .stats, .sign, .out,
+				 .cancel, .start, .accept, .challenge, .teams, .game, .sides, .go, .shuffle, .pick, .end');
 			case '.stats':
 				var nick = '';
 
@@ -550,7 +561,7 @@ bot.addListener('message', function(from, to, text, message) {
 				}
 				break;
 			case '.end':
-				if(str.length != 2)
+				if(str.length != 2 && (str[1].toLowerCase() == 'radiant' || str[1].toLowerCase() == 'dire'))
 				{
 					bot.say(to, 'Error. Type .end <radiant/dire> to end the game.');
 				}
