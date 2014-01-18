@@ -165,7 +165,7 @@ function accept(nick, callback)
 			if(game.radiant.captain != player)
 			{
 				game.dire.captain = player; 
-				signed = [player];
+				signed.push(player);
 
 				game.state = gamestate.signup;
 
@@ -617,14 +617,16 @@ bot.addListener('message', function(from, to, text, message) {
 				}
 				break;
 			case '.cancel':
-				if(cancel(from)) 
-				{
-					bot.say(to, 'Game canceled.');
-				}
-				else
-				{
-					bot.say(to, 'Error?! :G');	
-				}
+				cancel(from, function(player) {
+					if(player != null)
+					{
+						bot.say(to, 'Game canceled.');
+					}
+					else
+					{
+						bot.say(to, 'Error?! :G');	
+					}
+				});
 				break;
 		}
 	}
