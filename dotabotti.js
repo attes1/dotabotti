@@ -197,7 +197,7 @@ function cancel(nick, callback)
 	{
 		get_player(nick, false, function(player) {
 			var index = signed.indexOf(player);
-			if(index > -1 && player != game.radiant.captain && player != game.dire.captain)
+			if(index > -1)
 			{
 				game = null;
 				callback(player);
@@ -603,17 +603,14 @@ bot.addListener('message', function(from, to, text, message) {
 				});
 				break;
 			case '.end':
-				if(str.length != 2 && (str[1].toLowerCase() == 'radiant' || str[1].toLowerCase() == 'dire'))
-				{
-					bot.say(to, 'Error. Type .end <radiant/dire> to end the game.');
-				}
-				else if(end(str[1]))
+				if(str.length == 2 && !(str[1].toLowerCase() == 'radiant' || str[1].toLowerCase() == 'dire') && end(str[1]))
 				{
 					bot.say(to, 'Game finished. ' + game.winner.name + ' wins.');
+					
 				}
 				else
 				{
-					bot.say(to, 'Error?! :G');	
+					bot.say(to, 'Error. Type .end <radiant/dire> to end the game.');
 				}
 				break;
 			case '.cancel':
