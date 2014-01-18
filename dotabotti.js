@@ -67,7 +67,7 @@ function out(nick, callback)
 	{
 		get_player(nick, false, function(player) {
 			var index = signed.indexOf(player);
-			if(index > -1 && player != game.radiant.captain && player != game.dire.captain)
+			if(index > -1 && player.nick != game.radiant.captain.nick && player.nick != game.dire.captain.nick)
 			{
 				signed.splice(index, 1);
 				callback(player);
@@ -162,7 +162,7 @@ function accept(nick, callback)
 	if(game != null && game.state == gamestate.challenged)
 	{
 		get_player(nick, true, function(player) { 
-			if(game.radiant.captain != player)
+			if(game.radiant.captain.nick != player.nick)
 			{
 				game.dire.captain = player; 
 				signed.push(player);
@@ -498,7 +498,7 @@ bot.addListener('message', function(from, to, text, message) {
 							if(game.mode == gamemode.draft)
 							{
 								draft();
-								bot.say(to, 'Draft starts. ' + picking.name + 's turn to pick. Captain: ' + picking.captain + '.');
+								bot.say(to, 'Draft starts. ' + picking.name + 's turn to pick. Captain: ' + picking.captain.nick + '.');
 								bot.say(to, 'Available players: ' + get_signed());
 							}
 							else if(game.mode == gamemode.shuffle)
@@ -534,7 +534,7 @@ bot.addListener('message', function(from, to, text, message) {
 				}
 				else if(from != picking.captain)
 				{
-					bot.say(to, picking.captain + 's turn to pick.');
+					bot.say(to, 'NOPE! ' + picking.captain.nick + 's turn to pick.');
 				}
 				else if(str.length != 2)
 				{
@@ -559,7 +559,7 @@ bot.addListener('message', function(from, to, text, message) {
 					}
 					else
 					{
-						bot.say(to, picking.name + 's turn to pick. Captain: ' + picking.captain + '. Team: ' + team);
+						bot.say(to, picking.name + 's turn to pick. Captain: ' + picking.captain .nick+ '. Team: ' + team);
 						bot.say(to, 'Available players: ' + get_signed());
 					}
 				}
