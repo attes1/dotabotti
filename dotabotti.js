@@ -177,7 +177,7 @@ function accept(nick, callback)
 				get_player('xctyae', true, function(player) { signed.push(player); });
 				get_player('sfkddidfi', true, function(player) { signed.push(player); });
 
-				 callback(null);
+				 callback(player);
 			}
 			else
 			{
