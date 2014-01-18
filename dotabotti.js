@@ -96,14 +96,14 @@ function start(nick)
 
 		get_player(nick, true, function(player) { signed = [player] });
 
-		get_player('winkzi', true, function(player) { signed.push(player); });
-		get_player('shancial', true, function(player) { signed.push(player); });
-		get_player('agu', true, function(player) { signed.push(player); });
-		get_player('ra', true, function(player) { signed.push(player); });
-		get_player('cadiac', true, function(player) { signed.push(player); });
-		get_player('snowell', true, function(player) { signed.push(player); });
-		get_player('cawa', true, function(player) { signed.push(player); });
-		get_player('aira', true, function(player) { signed.push(player); });
+		get_player('cxvxvc', true, function(player) { signed.push(player); });
+		get_player('nvcb', true, function(player) { signed.push(player); });
+		get_player('2tsdsd', true, function(player) { signed.push(player); });
+		get_player('adsdssd', true, function(player) { signed.push(player); });
+		get_player('45h54546', true, function(player) { signed.push(player); });
+		get_player('betr', true, function(player) { signed.push(player); });
+		get_player('xctyae', true, function(player) { signed.push(player); });
+		get_player('sfkddidfi', true, function(player) { signed.push(player); });
 
 		return true;
 	}
@@ -200,6 +200,49 @@ function shuffle()
 	game.dire.players = signed.slice(5,10);
 	game.radiant.captain = game.radiant.players[0];
 	game.dire.captain = game.dire.players[0];
+}
+
+function sides(random)
+{
+	if(game != null && game.state < 5)
+	{
+		var temp = game.radiant;
+		var changed = false;
+
+		if(random) 
+		{
+			var rand = Math.floor(Math.random()*2);
+
+			if(rand == 0)
+			{
+				game.radiant = game.dire;
+				game.dire = temp;
+				changed = true;
+			}
+		}
+		else
+		{
+			game.radiant = game.dire;
+			game.dire = temp;
+			changed = true;
+		}
+
+		if(changed)
+		{
+			if(picking == game.radiant)
+			{
+				picking = game.dire;
+			}
+			else
+			{
+				picking = game.radiant;
+			}
+		}
+
+		return true;
+	}
+
+	return false;
 }
 
 function draft()
@@ -341,6 +384,26 @@ bot.addListener('message', function(from, to, text, message) {
 			case '.teams':
 				break;
 			case '.game':
+				break;
+			case '.sides':
+				var response = 'Sides swapped';
+
+				if(str.length > 1 && str[1] == 'random')
+				{
+					sides(true);
+					response = 'Sides randomed';
+				}
+				else if(str.length > 1 && str[1] == 'swap')
+				{
+					sides(false);
+				}
+				else
+				{
+					bot.say(to, 'Error. Type .sides random to randomize sides or .sides swap to swap sides.');
+					break;
+				}
+
+				bot.say(to, response + '. Radiant: ' + get_radiant() + ' Dire: ' + get_dire());
 				break;
 			case '.shuffle':
 				if(game.state == gamestate.shuffle)
