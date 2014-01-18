@@ -76,7 +76,7 @@ function out(nick, callback)
 			{
 				callback(null);
 			}
-		})
+		});
 	}
 	else
 	{
@@ -123,7 +123,7 @@ function start(nick)
 	return false;
 }
 
-function challenge(nick)
+function challenge(nick, callback)
 {
 	if(game == null || game.state == gamestate.ended)
 	{
@@ -148,15 +148,16 @@ function challenge(nick)
 		get_player(nick, true, function(player) { 
 			game.radiant.captain = player;
 			signed = [player];
+			callback(player);
 		});
-
-		return true;
 	}
-
-	return false;
+	else
+	{
+		callback(null);
+	}
 }
 
-function accept(nick)
+function accept(nick, callback)
 {
 	if(game != null && game.state == gamestate.challenged)
 	{
@@ -165,43 +166,55 @@ function accept(nick)
 			{
 				game.dire.captain = player; 
 				signed = [player];
+
+				game.state = gamestate.signup;
+
+				get_player('cxvxvc', true, function(player) { signed.push(player); });
+				get_player('nvcb', true, function(player) { signed.push(player); });
+				get_player('2tsdsd', true, function(player) { signed.push(player); });
+				get_player('adsdssd', true, function(player) { signed.push(player); });
+				get_player('betr', true, function(player) { signed.push(player); });
+				get_player('xctyae', true, function(player) { signed.push(player); });
+				get_player('sfkddidfi', true, function(player) { signed.push(player); });
+
+				 callback(null);
 			}
 			else
 			{
-				return false;
+				callback(null);
 			}
 		});
-		game.state = gamestate.signup;
-
-		get_player('cxvxvc', true, function(player) { signed.push(player); });
-		get_player('nvcb', true, function(player) { signed.push(player); });
-		get_player('2tsdsd', true, function(player) { signed.push(player); });
-		get_player('adsdssd', true, function(player) { signed.push(player); });
-		get_player('betr', true, function(player) { signed.push(player); });
-		get_player('xctyae', true, function(player) { signed.push(player); });
-		get_player('sfkddidfi', true, function(player) { signed.push(player); });
-
-
-		return true;
 	}
-
-	return false;
-}
-
-function cancel(nick)
-{
-	var index = signed.indexOf(nick);
-	if(game != null && index > -1)
+	else
 	{
-		game = null;
-
-		return true;
+		callback(null);
 	}
-
-	return false;
 }
 
-function end(winner)
+function cancel(nick, callback)
+{
+	if(game != null)
+	{
+		get_player(nick, false, function(player) {
+			var index = signed.indexOf(player);
+			if(index > -1 && player != game.radiant.captain && player != game.dire.captain)
+			{
+				game = null;
+				callback(player);
+			}
+			else
+			{
+				callback(null);
+			}
+		});
+	}
+	else
+	{
+		callback(null);
+	}
+}
+
+function end(winner, callback)
 {
 	if(game != null && game.state == gamestate.live)
 	{
@@ -566,24 +579,28 @@ bot.addListener('message', function(from, to, text, message) {
 				}
 				break;
 			case '.challenge':
-				if(challenge(from))
-				{
-					bot.say(to, from + ' challenged. Type .accept to accept challenge.');
-				}
-				else 
-				{
-					bot.say(to, 'Error?! :G');
-				}
+				challenge(from, function(player) {
+					if(player != null)
+					{
+						bot.say(to, from + ' challenged. Type .accept to accept challenge.');
+					}
+					else 
+					{
+						bot.say(to, 'Error?! :G');	
+					}
+				});
 				break;
 			case '.accept':
-				if(accept(from))
-				{
-					bot.say(to, 'Starting a new game (draft mode). Captains are ' + game.radiant.captain + ' and ' + game.dire.captain + '.' );
-				}
-				else 
-				{
-					bot.say(to, 'Error?! :G');
-				}
+				accept(from, function(player) {
+					if(player != null)
+					{
+						bot.say(to, 'Starting a new game (draft mode). Captains are ' + game.radiant.captain.nick + ' and ' + game.dire.captain.nick + '.' );
+					}
+					else 
+					{
+						bot.say(to, 'Error?! :G');	
+					}
+				});
 				break;
 			case '.end':
 				if(str.length != 2 && (str[1].toLowerCase() == 'radiant' || str[1].toLowerCase() == 'dire'))
