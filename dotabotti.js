@@ -1,11 +1,12 @@
 var irc = require('irc');
+var _ = require('underscore');
 var mongo = require('mongodb');
 var monk = require('monk');
 var db = monk('localhost:27017/dotabotti');
 
 var config = {
-	channels: [ '#tite-dota' ],
-	server: 'irc.nebula.fi',
+	channels: [ '#dotabotti' ],
+	server: 'irc.freenode.net',
 	nick: 'Meepo',
 	debug: true
 };
@@ -41,12 +42,12 @@ var picking = null;
 
 function sign(nick, callback)
 {
-	if(game != null && signed.length < 10 && game.state == gamestate.signup)
+	if(game != null && _.keys(signed).length < 10 && game.state == gamestate.signup)
 	{
 		get_player(nick, true, function(player) {
-			if(signed.indexOf(player) < 0)
+			if(!signed[player.nick])
 			{
-				signed.push(player);
+				signed[player.nick] = player;
 				callback(player);
 			}
 			else 
@@ -61,27 +62,16 @@ function sign(nick, callback)
 	}
 }
 
-function out(nick, callback)
+function out(nick)
 {
-	if(game != null)
+	if(game != null && signed[nick] && (game.radiant.captain == null || nick != game.radiant.captain.nick) && 
+		(game.dire.captain == null || nick != game.dire.captain.nick))
 	{
-		get_player(nick, false, function(player) {
-			var index = signed.indexOf(player);
-			if(index > -1 && player.nick != game.radiant.captain.nick && player.nick != game.dire.captain.nick)
-			{
-				signed.splice(index, 1);
-				callback(player);
-			}
-			else
-			{
-				callback(null);
-			}
-		});
+		delete signed[nick];
+		return true;
 	}
-	else
-	{
-		callback(null);
-	}
+
+	return false;
 }
 
 function start(nick)
@@ -106,16 +96,7 @@ function start(nick)
 			date: Date.now()
 		}
 
-		get_player(nick, true, function(player) { signed = [player] });
-
-		get_player('cxvxvc', true, function(player) { signed.push(player); });
-		get_player('nvcb', true, function(player) { signed.push(player); });
-		get_player('2tsdsd', true, function(player) { signed.push(player); });
-		get_player('adsdssd', true, function(player) { signed.push(player); });
-		get_player('45h54546', true, function(player) { signed.push(player); });
-		get_player('betr', true, function(player) { signed.push(player); });
-		get_player('xctyae', true, function(player) { signed.push(player); });
-		get_player('sfkddidfi', true, function(player) { signed.push(player); });
+		get_player(nick, true, function(player) { signed = []; signed[player.nick] = player; });
 
 		return true;
 	}
@@ -147,7 +128,7 @@ function challenge(nick, callback)
 
 		get_player(nick, true, function(player) { 
 			game.radiant.captain = player;
-			signed = [player];
+			signed[player.nick] = player;
 			callback(player);
 		});
 	}
@@ -165,17 +146,9 @@ function accept(nick, callback)
 			if(game.radiant.captain.nick != player.nick)
 			{
 				game.dire.captain = player; 
-				signed.push(player);
+				signed[player.nick] = player;
 
 				game.state = gamestate.signup;
-
-				get_player('cxvxvc', true, function(player) { signed.push(player); });
-				get_player('nvcb', true, function(player) { signed.push(player); });
-				get_player('2tsdsd', true, function(player) { signed.push(player); });
-				get_player('adsdssd', true, function(player) { signed.push(player); });
-				get_player('betr', true, function(player) { signed.push(player); });
-				get_player('xctyae', true, function(player) { signed.push(player); });
-				get_player('sfkddidfi', true, function(player) { signed.push(player); });
 
 				 callback(player);
 			}
@@ -191,27 +164,15 @@ function accept(nick, callback)
 	}
 }
 
-function cancel(nick, callback)
+function cancel(nick)
 {
 	if(game != null)
 	{
-		get_player(nick, false, function(player) {
-			var index = signed.indexOf(player);
-			if(index > -1)
-			{
-				game = null;
-				callback(player);
-			}
-			else
-			{
-				callback(null);
-			}
-		});
+		game = null;
+		return true;
 	}
-	else
-	{
-		callback(null);
-	}
+		
+	return false;
 }
 
 function end(winner, callback)
@@ -238,6 +199,8 @@ function end(winner, callback)
 	return false;
 }
 
+// THIS WON'T WORK ANYMORE!
+// FIX!
 function shuffle()
 {
 	for(var j, x, i = signed.length; i; j = Math.floor(Math.random() * i), x = signed[--i], signed[i] = signed[j], signed[j] = x);
@@ -312,11 +275,9 @@ function draft()
 
 function pick(nick)
 {
-	var index = signed.indexOf(nick);
-	
-	if(index > -1 && game.radiant.players.length + game.dire.players.length < 10)
+	if(signed[nick] && game.radiant.players.length + game.dire.players.length < 10)
 	{
-		picking.players.push(nick);
+		picking.players.push(signed[nick]);
 		
 		if(picking == game.radiant)
 		{
@@ -327,7 +288,7 @@ function pick(nick)
 			picking = game.radiant;
 		}
 		
-		signed.splice(index, 1);
+		delete signed[nick];
 		
 		return true;
 	}
@@ -338,9 +299,10 @@ function pick(nick)
 function get_signed()
 {
 	var players = '';
-	for(var i = 0; i < signed.length; i++)
+	var arr = _.keys(signed);
+	for(var i = 0; i < arr.length; i++)
 	{
-		players += (signed[i].nick + ' ');
+		players += (arr[i] + ' ');
 	}
 	return players;
 }
@@ -491,9 +453,9 @@ bot.addListener('message', function(from, to, text, message) {
 				sign(from, function(player) {
 					if(player != null)
 					{
-						bot.say(to, from + ' added. ' + signed.length + '/10');
+						bot.say(to, from + ' added. ' + _.keys(signed).length + '/10');
 
-						if(signed.length == 10)
+						if(_.keys(signed).length == 10)
 						{
 							if(game.mode == gamemode.draft)
 							{
@@ -516,16 +478,14 @@ bot.addListener('message', function(from, to, text, message) {
 				});
 				break;
 			case '.out':
-				out(from, function(player) {
-					if(player != null)
-					{
-						bot.say(to, from + ' removed. ' + signed.length + '/10')
-					}
-					else 
-					{
-						bot.say(to, 'Error?! :G');	
-					}
-				});
+				if(out(from))
+				{
+					bot.say(to, from + ' removed. ' + _.keys(signed).length + '/10')
+				}
+				else 
+				{
+					bot.say(to, 'Error?! :G');        
+				}
 				break;
 			case '.pick':			
 				if(game.state != gamestate.draft)
@@ -614,16 +574,14 @@ bot.addListener('message', function(from, to, text, message) {
 				}
 				break;
 			case '.cancel':
-				cancel(from, function(player) {
-					if(player != null)
-					{
-						bot.say(to, 'Game canceled.');
-					}
-					else
-					{
-						bot.say(to, 'Error?! :G');	
-					}
-				});
+				if(cancel(from)) 
+				{
+					bot.say(to, 'Game canceled.');
+				}
+				else
+				{
+					bot.say(to, 'Error?! :G');        
+				}
 				break;
 		}
 	}
