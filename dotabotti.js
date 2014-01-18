@@ -91,7 +91,8 @@ function start(nick)
 			gameid: '',
 			state: gamestate.signup,
 			mode: gamemode.shuffle,
-			winner: null
+			winner: null,
+			date: Date.now()
 		}
 
 		get_player(nick, true, function(player) { signed = [player] });
@@ -129,7 +130,8 @@ function challenge(nick)
 			gameid: '',
 			state: gamestate.challenged,
 			mode: gamemode.draft,
-			winner: null
+			winner: null,
+			date: Date.now()
 		}
 
 		get_player(nick, true, function(player) { game.radiant.captain = player });
