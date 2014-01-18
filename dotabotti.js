@@ -366,7 +366,18 @@ bot.addListener('message', function(from, to, text, message) {
 		switch(str[0])
 		{
 			case '.stats':
-				get_player(str[1], false, function(player) {
+				var nick = '';
+
+				if(str.length > 1)
+				{
+					nick = str[1];
+				}
+				else
+				{
+					nick = from;
+				}
+
+				get_player(nick, false, function(player) {
 					if(player != null)
 					{
 						bot.say(to, 'Nick: ' + player.nick + ' Rating: ' + player.rating + ' Wins: ' + player.wins + ' Losses: ' + 
@@ -417,7 +428,7 @@ bot.addListener('message', function(from, to, text, message) {
 				}
 				break;
 			case '.go':
-				if(game.state == gamestate.shuffle)
+				if(game.state == gamestate.shuffle || (game.state == gamestate.draft && game.radiant.players.length + game.dire.players.length == 10))
 				{
 					bot.say(to, 'GAME ON. GL HF BIG PLAYS.');
 					game.state = gamestate.live;
@@ -493,8 +504,7 @@ bot.addListener('message', function(from, to, text, message) {
 					if(game.radiant.players.length + game.dire.players.length == 10)
 					{
 						bot.say(to, 'Draft finished. Radiant: ' + get_radiant() + '. Dire: ' + get_dire());
-						bot.say(to, 'GAME ON. GL HF BIG PLAYS.');
-						game.state = gamestate.live;
+						bot.say(to, 'Type .go to proceed to game.');
 					}
 					else
 					{
