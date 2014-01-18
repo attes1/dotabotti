@@ -61,16 +61,27 @@ function sign(nick, callback)
 	}
 }
 
-function out(nick)
+function out(nick, callback)
 {
-	var index = signed.indexOf(nick);
-	if(game != null && index > -1 && nick != game.dire.captain && nick != game.radiant.captain)
+	if(game != null)
 	{
-		signed.splice(index, 1);
-		return true;
+		get_player(nick, false, function(player) {
+			var index = signed.indexOf(player);
+			if(index > -1 && player != game.radiant.captain && player != game.dire.captain)
+			{
+				signed.splice(index, 1);
+				callback(player);
+			}
+			else
+			{
+				callback(null);
+			}
+		})
 	}
-
-	return false;
+	else
+	{
+		callback(null);
+	}
 }
 
 function start(nick)
@@ -134,8 +145,10 @@ function challenge(nick)
 			date: Date.now()
 		}
 
-		get_player(nick, true, function(player) { game.radiant.captain = player });
-		signed = [nick];
+		get_player(nick, true, function(player) { 
+			game.radiant.captain = player;
+			signed = [player];
+		});
 
 		return true;
 	}
@@ -145,16 +158,25 @@ function challenge(nick)
 
 function accept(nick)
 {
-	if(game != null && game.state == gamestate.challenged && game.radiant.captain != nick)
+	if(game != null && game.state == gamestate.challenged)
 	{
-		get_player(nick, true, function(player) { game.dire.captain = player; signed = [player] });
+		get_player(nick, true, function(player) { 
+			if(game.radiant.captain != player)
+			{
+				game.dire.captain = player; 
+				signed = [player];
+			}
+			else
+			{
+				return false;
+			}
+		});
 		game.state = gamestate.signup;
 
 		get_player('cxvxvc', true, function(player) { signed.push(player); });
 		get_player('nvcb', true, function(player) { signed.push(player); });
 		get_player('2tsdsd', true, function(player) { signed.push(player); });
 		get_player('adsdssd', true, function(player) { signed.push(player); });
-		get_player('45h54546', true, function(player) { signed.push(player); });
 		get_player('betr', true, function(player) { signed.push(player); });
 		get_player('xctyae', true, function(player) { signed.push(player); });
 		get_player('sfkddidfi', true, function(player) { signed.push(player); });
@@ -376,8 +398,9 @@ bot.addListener('message', function(from, to, text, message) {
 		switch(str[0])
 		{
 			case '.help':
-				bot.say(to, 'Type .help <command> for further instructions. Commands: .stats, .sign, .out,
-				 .cancel, .start, .accept, .challenge, .teams, .game, .sides, .go, .shuffle, .pick, .end');
+				bot.say(to, 'Type .help <command> for further instructions. Commands: .stats, .sign, .out, ' +
+				 '.cancel, .start, .accept, .challenge, .teams, .game, .sides, .go, .shuffle, .pick, .end');
+				break;
 			case '.stats':
 				var nick = '';
 
@@ -480,14 +503,16 @@ bot.addListener('message', function(from, to, text, message) {
 				});
 				break;
 			case '.out':
-				if(out(from))
-				{
-					bot.say(to, from + ' removed. ' + signed.length + '/10')
-				}
-				else 
-				{
-					bot.say(to, 'Error?! :G');	
-				}
+				out(from, function(player) {
+					if(player != null)
+					{
+						bot.say(to, from + ' removed. ' + signed.length + '/10')
+					}
+					else 
+					{
+						bot.say(to, 'Error?! :G');	
+					}
+				});
 				break;
 			case '.pick':			
 				if(game.state != gamestate.draft)
