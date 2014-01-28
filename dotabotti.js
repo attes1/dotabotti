@@ -5,8 +5,8 @@ var monk = require('monk');
 var db = monk('localhost:27017/dotabotti');
 
 var config = {
-	channels: [ '#dotabotti' ],
-	server: 'irc.freenode.net',
+	channels: [ '#tite-dota' ],
+	server: 'irc.nebula.fi',
 	nick: 'Meepo',
 	debug: true
 };
@@ -492,7 +492,7 @@ bot.addListener('message', function(from, to, text, message) {
 				{
 					bot.say(to, 'Error. Not in draft phase.')
 				}
-				else if(from != picking.captain)
+				else if(from != picking.captain.nick)
 				{
 					bot.say(to, 'NOPE! ' + picking.captain.nick + 's turn to pick.');
 				}
